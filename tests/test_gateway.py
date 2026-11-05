@@ -26,6 +26,13 @@ class JsonlReaderTests(unittest.TestCase):
 
             self.assertEqual(read_jsonl(source), [{"tick": 1}, {"tick": 2}])
 
+    def test_reads_utf8_jsonl(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            source = Path(temporary_directory) / "data.jsonl"
+            source.write_bytes('{"station": "Станция"}\n'.encode("utf-8"))
+
+            self.assertEqual(read_jsonl(source), [{"station": "Станция"}])
+
     def test_reports_invalid_json_line_number(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             source = Path(temporary_directory) / "data.jsonl"

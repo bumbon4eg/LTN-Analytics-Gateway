@@ -1,74 +1,7 @@
-# -*- coding: utf-8 -*-
-from tkinter import ttk
 import tkinter as tk
-from typing import Callable
 
 
-class GatewayWidgets:
-    BACKGROUND = "#f3f4f1"
-    SURFACE = "#ffffff"
-    SIDEBAR = "#29343a"
-    INK = "#2c3539"
-    MUTED = "#788187"
-    LINE = "#dfe3e2"
-    ACCENT = "#c5d4cb"
-    GREEN = "#58776a"
-    RED = "#a85f5b"
-    FONT = "Segoe UI"
-
-    def _configure_styles(self) -> None:
-        style = ttk.Style(self.root)
-        style.theme_use("clam")
-        style.configure("Gateway.TCombobox", padding=8, font=(self.FONT, 11))
-
-    def _button(
-        self,
-        parent: tk.Misc,
-        text: str,
-        command: Callable[[], None],
-        primary: bool = False,
-        **options: object,
-    ) -> tk.Button:
-        background = self.INK if primary else self.SURFACE
-        foreground = "#ffffff" if primary else self.INK
-        return tk.Button(
-            parent,
-            text=text,
-            command=command,
-            bg=background,
-            fg=foreground,
-            activebackground=self.GREEN if primary else "#e9eee7",
-            activeforeground="#ffffff" if primary else self.INK,
-            disabledforeground="#89938d",
-            relief="flat",
-            bd=0,
-            padx=18,
-            pady=11,
-            font=(self.FONT, 10, "bold"),
-            cursor="hand2",
-            **options,
-        )
-
-    def _label(
-        self,
-        parent: tk.Misc,
-        text: str,
-        *,
-        size: int = 10,
-        color: str | None = None,
-        weight: str = "normal",
-        **options: object,
-    ) -> tk.Label:
-        return tk.Label(
-            parent,
-            text=text,
-            bg=options.pop("bg", self.SURFACE),
-            fg=color or self.INK,
-            font=(self.FONT, size, weight),
-            anchor=options.pop("anchor", "w"),
-            **options,
-        )
-
+class InputComponents:
     def _entry(
         self,
         parent: tk.Misc,
@@ -86,20 +19,7 @@ class GatewayWidgets:
         if reveal_toggle:
             field_row.pack(fill="x")
 
-        entry = tk.Entry(
-            field_row,
-            textvariable=variable,
-            show=show or "",
-            relief="flat",
-            bg="#f6f7f6",
-            fg=self.INK,
-            insertbackground=self.INK,
-            font=(self.FONT, 11),
-            highlightthickness=1,
-            highlightbackground=self.LINE,
-            highlightcolor=self.GREEN,
-        )
-
+        entry = self._text_entry(field_row, variable, show=show)
         if reveal_toggle:
             entry.pack(side="left", fill="x", expand=True, ipady=10)
             reveal_button: tk.Button
@@ -118,8 +38,32 @@ class GatewayWidgets:
         else:
             entry.pack(fill="x", ipady=10)
 
-        self._bind_entry_clipboard(entry)
         return frame
+
+    def _text_entry(
+        self,
+        parent: tk.Misc,
+        variable: tk.StringVar,
+        *,
+        show: str | None = None,
+        **options: object,
+    ) -> tk.Entry:
+        entry_options = {
+            "textvariable": variable,
+            "show": show or "",
+            "relief": "flat",
+            "bg": "#f6f7f6",
+            "fg": self.INK,
+            "insertbackground": self.INK,
+            "font": (self.FONT, 11),
+            "highlightthickness": 1,
+            "highlightbackground": self.LINE,
+            "highlightcolor": self.GREEN,
+        }
+        entry_options.update(options)
+        entry = tk.Entry(parent, **entry_options)
+        self._bind_entry_clipboard(entry)
+        return entry
 
     def _bind_entry_clipboard(self, entry: tk.Entry) -> None:
         entry.bind("<Control-KeyPress>", self._entry_control_shortcut)
@@ -163,7 +107,7 @@ class GatewayWidgets:
             widget.select_range(0, "end")
             widget.icursor("end")
         else:
-            GatewayWidgets._entry_clipboard_action(widget, action)
+            InputComponents._entry_clipboard_action(widget, action)
         return "break"
 
     @staticmethod
@@ -190,7 +134,7 @@ class GatewayWidgets:
         action = action_by_keysym.get(keysym) or action_by_keycode.get(event.keycode)
         if action is None:
             return None
-        return GatewayWidgets._entry_shortcut(event, action)
+        return InputComponents._entry_shortcut(event, action)
 
     @staticmethod
     def _entry_clipboard_action(entry: tk.Entry, action: str) -> None:

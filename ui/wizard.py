@@ -15,14 +15,7 @@ class WizardView:
         self._clear_window()
         self.root.configure(bg=self.BACKGROUND)
         self.wizard_step = 0
-        current = self.config
-        self.source_var = tk.StringVar(value=current.source_jsonl_path)
-        self.host_var = tk.StringVar(value=current.database.db_host)
-        self.port_var = tk.StringVar(value=str(current.database.db_port))
-        self.database_var = tk.StringVar(value=current.database.db_name)
-        self.user_var = tk.StringVar(value=current.database.db_user)
-        self.password_var = tk.StringVar(value=current.database.db_password)
-        self.ssl_var = tk.BooleanVar(value=current.database.db_ssl)
+        self._initialize_form(self.config)
         self.wizard_status: tk.Label | None = None
         self._render_wizard_step()
 
@@ -133,18 +126,12 @@ class WizardView:
             ).pack(anchor="w", pady=(0, 22))
             row = tk.Frame(parent, bg=self.SURFACE)
             row.pack(fill="x")
-            path_entry = tk.Entry(
+            path_entry = self._text_entry(
                 row,
-                textvariable=self.source_var,
-                relief="flat",
-                bg="#f6f7f6",
-                fg=self.INK,
+                self.source_var,
                 font=(self.FONT, 10),
-                highlightthickness=1,
-                highlightbackground=self.LINE,
             )
             path_entry.pack(side="left", fill="x", expand=True, ipady=12)
-            self._bind_entry_clipboard(path_entry)
             self._button(row, "Обзор…", self._browse_source).pack(side="left", padx=(10, 0))
         elif self.wizard_step == 1:
             self._label(parent, "Куда загружать данные", size=16, weight="bold").pack(

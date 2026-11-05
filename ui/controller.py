@@ -12,26 +12,36 @@ from typing import Any, Callable
 from main import ImportResult, import_jsonl_data, test_connection
 from shared.configuration.provider import ConfigProvider
 from shared.configuration.user_config import (
-    CONFIG_PATH,
     DatabaseConfig,
     GatewayConfig,
     RunStatistics,
     load_user_config,
     save_user_config,
 )
+from .components.buttons import ButtonComponents
+from .components.inputs import InputComponents
+from .components.labels import LabelComponents
+from .components.theme import Theme
 from .dashboard import DashboardView
-from .widgets import GatewayWidgets
+from .settings import SettingsView
 from .wizard import WizardView
 
 
-class GatewayApp(GatewayWidgets, WizardView, DashboardView):
+class GatewayApp(
+    Theme,
+    ButtonComponents,
+    LabelComponents,
+    InputComponents,
+    WizardView,
+    DashboardView,
+    SettingsView,
+):
     def __init__(self) -> None:
         self.root = tk.Tk()
         self.root.title("LTN Analytics Gateway")
         self.root.geometry("960x640")
         self.root.minsize(860, 570)
         self.root.configure(bg=self.BACKGROUND)
-        self._configure_styles()
 
         self.result_queue: queue.Queue[tuple] = queue.Queue()
         self.busy_buttons: list[tk.Button] = []
@@ -129,6 +139,15 @@ class GatewayApp(GatewayWidgets, WizardView, DashboardView):
         self.wizard_step -= 1
         self._render_wizard_step()
 
+    def _initialize_form(self, config: GatewayConfig) -> None:
+        self.source_var = tk.StringVar(value=config.source_jsonl_path)
+        self.host_var = tk.StringVar(value=config.database.db_host)
+        self.port_var = tk.StringVar(value=str(config.database.db_port))
+        self.database_var = tk.StringVar(value=config.database.db_name)
+        self.user_var = tk.StringVar(value=config.database.db_user)
+        self.password_var = tk.StringVar(value=config.database.db_password)
+        self.ssl_var = tk.BooleanVar(value=config.database.db_ssl)
+
     def _database_from_form(self) -> DatabaseConfig:
         try:
             database = DatabaseConfig(
@@ -142,7 +161,7 @@ class GatewayApp(GatewayWidgets, WizardView, DashboardView):
         except (ValueError, TypeError) as error:
             raise ValueError("Порт должен быть целым числом.") from error
         if not all((database.db_user, database.db_password, database.db_host, database.db_name)):
-            raise ValueError("Заполните сервер, базу данных, пользователя и пароль.")
+            raise ValueError("Заполните все параметры PostgreSQL.")
         if not 1 <= database.db_port <= 65535:
             raise ValueError("Порт должен быть в диапазоне от 1 до 65535.")
         return database
@@ -150,6 +169,11 @@ class GatewayApp(GatewayWidgets, WizardView, DashboardView):
     def _set_wizard_status(self, text: str, *, error: bool = False) -> None:
         if self.wizard_status and self.wizard_status.winfo_exists():
             self.wizard_status.configure(text=text, fg=self.RED if error else self.GREEN)
+
+    def _open_settings(self) -> None:
+        self._initialize_form(self.config)
+        self.settings_status: tk.Label | None = None
+        self.show_settings()
 
     def _check_and_save(self) -> None:
         try:
@@ -181,27 +205,9 @@ class GatewayApp(GatewayWidgets, WizardView, DashboardView):
 
         self._run_async(lambda: test_connection(database), on_success)
 
-    def _settings_database(self) -> DatabaseConfig:
-        try:
-            database = DatabaseConfig(
-                db_user=self.user_var.get().strip(),
-                db_password=self.password_var.get(),
-                db_host=self.host_var.get().strip(),
-                db_port=int(self.port_var.get().strip()),
-                db_name=self.database_var.get().strip(),
-                db_ssl=self.ssl_var.get(),
-            )
-        except (ValueError, TypeError) as error:
-            raise ValueError("Проверьте номер порта.") from error
-        if not all((database.db_user, database.db_password, database.db_host, database.db_name)):
-            raise ValueError("Заполните все параметры PostgreSQL.")
-        if not 1 <= database.db_port <= 65535:
-            raise ValueError("Порт должен быть в диапазоне от 1 до 65535.")
-        return database
-
     def _test_settings_connection(self) -> None:
         try:
-            database = self._settings_database()
+            database = self._database_from_form()
         except ValueError as error:
             self.settings_status.configure(text=str(error), fg=self.RED)
             return
@@ -215,7 +221,7 @@ class GatewayApp(GatewayWidgets, WizardView, DashboardView):
 
     def _save_settings_form(self) -> None:
         try:
-            database = self._settings_database()
+            database = self._database_from_form()
             source_path = self.source_var.get().strip()
             if not source_path:
                 raise ValueError("Укажите путь к JSONL-файлу.")

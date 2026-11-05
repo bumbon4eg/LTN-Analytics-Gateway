@@ -1,0 +1,11 @@
+class Theme:
+    BACKGROUND = "#f3f4f1"
+    SURFACE = "#ffffff"
+    SIDEBAR = "#29343a"
+    INK = "#2c3539"
+    MUTED = "#788187"
+    LINE = "#dfe3e2"
+    ACCENT = "#c5d4cb"
+    GREEN = "#58776a"
+    RED = "#a85f5b"
+    FONT = "Segoe UI"

@@ -1,8 +1,8 @@
 import asyncio
-import json
 from dataclasses import dataclass
 from pathlib import Path
 
+import orjson
 from sqlalchemy import text
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -58,15 +58,15 @@ def read_jsonl(path: Path) -> list[dict]:
         raise FileNotFoundError(f"Файл данных не найден: {path}")
 
     packets: list[dict] = []
-    with path.open("r", encoding="utf-8") as source_file:
+    with path.open("rb") as source_file:
         for line_number, line in enumerate(source_file, start=1):
             if not line.strip():
                 continue
             try:
-                packet = json.loads(line)
-            except json.JSONDecodeError as error:
+                packet = orjson.loads(line)
+            except orjson.JSONDecodeError as error:
                 raise ValueError(
-                    f"Некорректный JSON в строке {line_number}: {error.msg}"
+                    f"Некорректный JSON в строке {line_number}: {error}"
                 ) from error
             if not isinstance(packet, dict):
                 raise ValueError(f"Строка {line_number}: ожидался JSON-объект.")
