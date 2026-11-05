@@ -12,6 +12,8 @@ venv/
 
 
 .idea/
+build/
+dist/
 
 core/configs/config.json
 

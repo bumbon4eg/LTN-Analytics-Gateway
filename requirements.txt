@@ -1,3 +1,5 @@
-asyncpg
-SQLAlchemy
-pydantic
+asyncpg==0.31.0
+SQLAlchemy==2.0.53
+pydantic==2.13.5
+pydantic-settings==2.15.0
+orjson==3.11.3
