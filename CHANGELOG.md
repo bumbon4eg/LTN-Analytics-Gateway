@@ -4,6 +4,7 @@
 
 - **NEW**: Add a Windows desktop interface with a first-run setup wizard and an import dashboard.
 - **ADD**: Add saved user configuration for the JSONL source and PostgreSQL connection, including optional SSL/TLS.
+- **ADD**: Add a PowerShell release-build script that packages the desktop app as a single-file Windows executable.
 - **UPDATE**: Configure the import flow from saved settings and report processed snapshots and inserted records.
 - **UPDATE**: Speed up JSONL parsing with `orjson` while retaining line-numbered input errors.
 - **CHANGES**: Validate JSONL input and report invalid records with their line numbers.

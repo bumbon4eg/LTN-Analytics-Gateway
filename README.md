@@ -22,6 +22,16 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
+## Build a release executable
+
+Place the application icon at `assets\LTN_Analytics_Gateway.ico`, then run:
+
+```powershell
+.\build_release.ps1
+```
+
+The script uses Python 3.12, creates or reuses the repository-local `.venv`, installs the pinned application and PyInstaller dependencies, and builds a single-file, windowed executable at `dist\LTN_Analytics_Gateway.exe`. Build intermediates are written to `build\`. Pass `-IconPath` to use another `.ico` file, or `-PythonVersion` to select a Python version available through the Windows `py` launcher.
+
 On first launch, the setup wizard asks for the JSONL source and PostgreSQL connection details. The default source is:
 
 ```text
